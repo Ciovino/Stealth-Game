@@ -5,7 +5,7 @@
 ## How to run the game
 You will need to compile and create you own *.exe* file:
 - Open the command window (CMD or Powershell) and move to this folder;
-- Type the following command: `gcc source\main.c source\Screen.c source\Random.c -o StealthGame.exe`
+- Type the following command: `gcc .\source\main.c .\source\Screen.c .\source\Random.c .\source\Colori.c -o StealthGame.exe`
 - Now run the game with: `.\StealthGame.exe`
 
 ## Why this project?
