@@ -25,40 +25,47 @@ typedef struct{
     int y;
     int old_x;
     int old_y;
+    int updated;
 }PLAYER;
 
-char* map;
+typedef struct{
+    int fullSize;
+    char* map;
+    PLAYER* player;
+}MAP;
 
-int UpdatePosition(PLAYER* p, int key_pressed);
+MAP* InitializeMap(int width, int heigth);
+void AddPlayer(MAP* map, PLAYER* player);
+void UpdateMap(MAP* map);
+void PrintMap(MAP* map);
+void FreeMap(MAP* map);
+
+void UpdatePosition(PLAYER* p, int key_pressed);
 
 int main(int argc, char **argv)
 {
     // Map Initialization
-    int fullSize = MAX_W*MAX_H;
-    map = malloc((fullSize + 1)*sizeof(char));
-    for(int i = 0; i < fullSize; i++)
-        map[i] = ' ';
-    map[fullSize] = '\0';
+    MAP* map = InitializeMap(MAX_W, MAX_H);
 
     ClearAndHome();
 
+    // Create a player
     printf("Choose your character (*smash bros theme in the background*): ");
     PLAYER* player = malloc(sizeof(PLAYER));
-    player->x = player->y = player->old_x = player->old_y = 0;
+    player->x = player->y = player->old_x = player->old_y = player->updated = 0;
     player->face = getchar(); // Let player choose their own character
 
     printf("this u -> %c\n", player->face);
+    while (!kbhit()) {}
 
     // Start game
+    AddPlayer(map, player);
+    PrintMap(map);
+
     int esc = 0;
-    map[POS(player->x, player->y)] = player->face;
-
-    ClearAndHome();
-    printf("%s", map);
-
     while(!esc)
     {
-        int key, update_frame = 1, update_player = 1;
+        int key;
         while (!kbhit()) {}
         key = getch();
 
@@ -69,45 +76,48 @@ int main(int argc, char **argv)
         case DOWN:
         case RIGHT:
         case LEFT:
-            update_player = UpdatePosition(player, key);
+            UpdatePosition(player, key);
             break;
 
         default:
             break;
         }
 
-        update_frame = update_player;
-        if(update_frame)
-        {
-            if(update_player)
-            {
-                map[POS(player->old_x, player->old_y)] = ' ';
-                map[POS(player->x, player->y)] = player->face;
-            }
-
-            ClearAndHome();
-            printf("%s", map);
-        }
+        UpdateMap(map);
     }
     
-    
-    free(map);
+    FreeMap(map);
     free(player);
     return 0;
 }
 
-int UpdatePosition(PLAYER* p, int key_pressed)
+void UpdateMap(MAP* map)
+{
+    int some_update = map->player->updated;
+
+    // Player update
+    if(map->player->updated)
+    {
+        map->player->updated = 0;
+        map->map[POS(map->player->old_x, map->player->old_y)] = ' ';
+        map->map[POS(map->player->x, map->player->y)] = map->player->face;
+    }
+
+    if(some_update) PrintMap(map);
+}
+
+void UpdatePosition(PLAYER* p, int key_pressed)
 {
     p->old_x = p->x;
     p->old_y = p->y;
 
-    int update_player_position = 1;
+    p->updated = 1;
     switch (key_pressed) {
         case UP:
             p->y--;
             if(p->y < 0){
                 p->y = 0;
-                update_player_position = 0;
+                p->updated = 0;
             }
             break;
 
@@ -115,7 +125,7 @@ int UpdatePosition(PLAYER* p, int key_pressed)
             p->y++;
             if(p->y >= MAX_H){
                 p->y = MAX_H - 1;
-                update_player_position = 0;
+                p->updated = 0;
             }
             break;
 
@@ -123,7 +133,7 @@ int UpdatePosition(PLAYER* p, int key_pressed)
             p->x++;
             if(p->x >= MAX_W){
                 p->x = MAX_W - 1;
-                update_player_position = 0;
+                p->updated = 0;
             }
             break;
 
@@ -131,13 +141,46 @@ int UpdatePosition(PLAYER* p, int key_pressed)
             p->x--;
             if(p->x < 0){
                 p->x = 0;
-                update_player_position = 0;
+                p->updated = 0;
             }
             break;
 
         default:
             break;
     }
+}
 
-    return update_player_position;
+void PrintMap(MAP* map)
+{
+    ClearAndHome();
+    printf("%s", map->map);
+}
+
+void AddPlayer(MAP* map, PLAYER* player)
+{
+    map->player = player;
+
+    map->map[POS(map->player->x, map->player->y)] = map->player->face;
+}
+
+MAP* InitializeMap(int width, int heigth)
+{
+    MAP* map = malloc(sizeof(MAP));
+
+    map->fullSize = width*heigth;
+
+    map->map = malloc((map->fullSize + 1) * sizeof(char));
+    for(int i = 0; i < map->fullSize; i++) map->map[i] = ' '; 
+    map->map[map->fullSize] = '\0';
+
+    // No player provided
+    map->player = NULL;
+
+    return map;
+}
+
+void FreeMap(MAP* map)
+{
+    free(map->map);
+    free(map);
 }
