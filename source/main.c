@@ -5,6 +5,7 @@
 
 #include "..\header\Screen.h"
 #include "..\header\Random.h"
+#include "..\header\Colori.h"
 
 #define FPS 6
 
@@ -32,6 +33,12 @@ typedef enum{
     WEST    = 2
 }DIRECTIONS;
 
+typedef enum{
+    C_NOTHING = -1,
+    C_GUARD = 0,
+    C_PLAYER = 1,
+}SPECIAL_CHARS;
+
 /*** Stealth Game ***/
 typedef struct{
     char face;
@@ -40,6 +47,9 @@ typedef struct{
     int old_x;
     int old_y;
     int updated;
+    
+    COLOR faceColor;
+    COLOR backGround;
 }PLAYER;
 
 typedef struct{
@@ -67,9 +77,15 @@ typedef struct{
 
     GUARD** allGuards;
     int totalGuards;
+    COLOR guardColor;
+    COLOR guardBackGround;
+
+    char* specialChar;
+    int specialCharSize;
 }MAP;
 
 MAP* InitializeMap(int width, int heigth);
+SPECIAL_CHARS FindSpecialChar(MAP* map, char c);
 void AddPlayer(MAP* map, PLAYER* player);
 void CreateRandomGuards(MAP* map, int totalGuards);
 void UpdateMap(MAP* map);
@@ -92,6 +108,7 @@ int main(int argc, char **argv)
     printf("Choose your character (*smash bros theme in the background*): ");
     PLAYER* player = malloc(sizeof(PLAYER));
     player->x = player->y = player->old_x = player->old_y = player->updated = 0;
+    player->faceColor = COL_LIGHT_CYAN; player->backGround = COL_BLACK;
     player->face = getchar(); // Let player choose their own character
 
     printf("this u -> %c\n", player->face);
@@ -283,7 +300,31 @@ void PrintMap(MAP* map)
     for(int r = 0; r < map->heigth; r++)
     {
         printf("|");
-        for(int c = 0; c < map->width; c++) printf("%c", map->map[POS(r, c, map->width)]);
+        for(int c = 0; c < map->width; c++)
+        {
+            char toPrint = map->map[POS(r, c, map->width)];
+            SPECIAL_CHARS isSpecial = FindSpecialChar(map, toPrint);
+
+            switch(isSpecial)
+            {
+                case C_PLAYER:
+                    BackGroundAndText(map->player->backGround, map->player->faceColor);
+                    printf("%c", toPrint);
+                    break;
+                
+                case C_GUARD:
+                    BackGroundAndText(map->guardBackGround, map->guardColor);
+                    printf("%c", toPrint);
+                    break;
+                
+                case C_NOTHING:
+                default:
+                    BackGroundAndText(COL_BLACK, COL_NORMAL);
+                    printf("%c", toPrint);
+                    break;
+            }
+            BackGroundAndText(COL_BLACK, COL_NORMAL);
+        }
         printf("|\n");
     }
 
@@ -298,6 +339,8 @@ void AddPlayer(MAP* map, PLAYER* player)
     map->player = player;
 
     map->map[POS(map->player->x, map->player->y, map->width)] = map->player->face;
+
+    map->specialChar[C_PLAYER] = map->player->face;
 }
 
 GUARD* RandomGuard(int width, int heigth)
@@ -308,8 +351,9 @@ GUARD* RandomGuard(int width, int heigth)
     g->old_y = g->y = RandomIntFrom0ToMax(width);
     g->direction = RandomInt(1, 3);
 
+    g->face = 'G';   
+
     g->speed = 10;
-    g->face = 'G';
     g->frameCounter = 0;
 
     return g;
@@ -329,6 +373,24 @@ void CreateRandomGuards(MAP* map, int totalGuards)
 
         map->map[POS(guard->x, guard->y, map->width)] = guard->face;
     }
+
+    map->specialChar[C_GUARD] = 'G';
+    map->guardColor = COL_BLACK;
+    map->guardBackGround = COL_LIGHT_BLUE;
+}
+
+SPECIAL_CHARS FindSpecialChar(MAP* map, char c)
+{
+    SPECIAL_CHARS found = C_NOTHING;
+
+    for(int i = 0; i < map->specialCharSize; i++)
+    {
+        if(map->specialChar[i] == c){
+            found = i;
+            break;
+        }
+    }
+    return found;
 }
 
 MAP* InitializeMap(int width, int heigth)
@@ -349,6 +411,11 @@ MAP* InitializeMap(int width, int heigth)
     // Delta time => how much time between frame, in milliseconds
     map->deltaTime = 1000 / FPS;
 
+    // Special character, for colors
+    map->specialCharSize = 15;
+    map->specialChar = malloc(map->specialCharSize * sizeof(char));
+    for(int i = 0; i < map->specialCharSize; i++) map->specialChar[i] = '.';
+
     return map;
 }
 
@@ -359,5 +426,6 @@ void FreeMap(MAP* map)
     free(map->allGuards);
 
     free(map->map);
+    free(map->specialChar);
     free(map);
 }
