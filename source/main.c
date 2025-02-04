@@ -22,7 +22,7 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#define POS(x, y, max_w) (x + y*max_w)
+#define POS(x, y, max_w) (x*max_w + y)
 
 // Oposite direction have opposite sign
 typedef enum{
@@ -175,38 +175,38 @@ int UpdateGuards(MAP* map)
 
             switch(map->allGuards[g]->direction){
                 case NORD:
-                    map->allGuards[g]->y--;
-                    if(map->allGuards[g]->y < 0){
+                    map->allGuards[g]->x--;
+                    if(map->allGuards[g]->x < 0){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->y = map->allGuards[g]->old_y + 1;
+                        map->allGuards[g]->x = map->allGuards[g]->old_x + 1;
                     }
                     break;
 
                 case SOUTH:
-                    map->allGuards[g]->y++;
-                    if(map->allGuards[g]->y >= map->heigth){
-                        // Invert direction
-                        map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->y = map->allGuards[g]->old_y - 1;
-                    }
-                    break;
-
-                case EAST:
                     map->allGuards[g]->x++;
-                    if(map->allGuards[g]->x >= map->width){
+                    if(map->allGuards[g]->x >= map->heigth){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
                         map->allGuards[g]->x = map->allGuards[g]->old_x - 1;
                     }
                     break;
 
-                case WEST:
-                    map->allGuards[g]->x--;
-                    if(map->allGuards[g]->x < 0){
+                case EAST:
+                    map->allGuards[g]->y++;
+                    if(map->allGuards[g]->y >= map->width){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->x = map->allGuards[g]->old_x + 1;
+                        map->allGuards[g]->y = map->allGuards[g]->old_y - 1;
+                    }
+                    break;
+
+                case WEST:
+                    map->allGuards[g]->y--;
+                    if(map->allGuards[g]->y < 0){
+                        // Invert direction
+                        map->allGuards[g]->direction *= -1;
+                        map->allGuards[g]->y = map->allGuards[g]->old_y + 1;
                     }
                     break;
 
@@ -234,33 +234,33 @@ void UpdatePosition(MAP* map, PLAYER* p, int key_pressed)
     p->updated = 1;
     switch (key_pressed) {
         case UP:
-            p->y--;
-            if(p->y < 0){
-                p->y = 0;
+            p->x--;
+            if(p->x < 0){
+                p->x = 0;
                 p->updated = 0;
             }
             break;
 
         case DOWN:
-            p->y++;
-            if(p->y >= map->heigth){
-                p->y = map->heigth - 1;
+            p->x++;
+            if(p->x >= map->heigth){
+                p->x = map->heigth - 1;
                 p->updated = 0;
             }
             break;
 
         case RIGHT:
-            p->x++;
-            if(p->x >= map->width){
-                p->x = map->width - 1;
+            p->y++;
+            if(p->y >= map->width){
+                p->y = map->width - 1;
                 p->updated = 0;
             }
             break;
 
         case LEFT:
-            p->x--;
-            if(p->x < 0){
-                p->x = 0;
+            p->y--;
+            if(p->y < 0){
+                p->y = 0;
                 p->updated = 0;
             }
             break;
@@ -283,7 +283,7 @@ void PrintMap(MAP* map)
     for(int r = 0; r < map->heigth; r++)
     {
         printf("|");
-        for(int c = 0; c < map->width; c++) printf("%c", map->map[POS(c, r, map->width)]);
+        for(int c = 0; c < map->width; c++) printf("%c", map->map[POS(r, c, map->width)]);
         printf("|\n");
     }
 
@@ -304,8 +304,8 @@ GUARD* RandomGuard(int width, int heigth)
 {
     GUARD* g = malloc(sizeof(GUARD));
 
-    g->old_x = g->x = RandomIntFrom0ToMax(width);
-    g->old_y = g->y = RandomIntFrom0ToMax(heigth);
+    g->old_x = g->x = RandomIntFrom0ToMax(heigth);
+    g->old_y = g->y = RandomIntFrom0ToMax(width);
     g->direction = RandomInt(1, 3);
 
     g->speed = 10;
