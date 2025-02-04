@@ -10,7 +10,7 @@
 #define FPS 6
 
 // Data found in the PowerShell settings
-#define MAX_W 118   // 120 - 2
+#define MAX_W 38   // 120 - 2
 #define MAX_H 28    // 30 - 2
 
 // Key for player movment
@@ -35,8 +35,9 @@ typedef enum{
 
 typedef enum{
     C_NOTHING = -1,
-    C_GUARD = 0,
-    C_PLAYER = 1,
+    C_GUARD,
+    C_GUARD_RANGE,
+    C_PLAYER,
 }SPECIAL_CHARS;
 
 /*** Stealth Game ***/
@@ -60,6 +61,9 @@ typedef struct{
     int old_y;
 
     DIRECTIONS direction;
+    int range;
+    char rangeChar;
+    int* rangePos;
 
     // How many frame it needs to move
     int speed;
@@ -88,6 +92,7 @@ MAP* InitializeMap(int width, int heigth);
 SPECIAL_CHARS FindSpecialChar(MAP* map, char c);
 void AddPlayer(MAP* map, PLAYER* player);
 void CreateRandomGuards(MAP* map, int totalGuards);
+int* ComputeRangePosition(int* oldRange, int range, int x, int y, DIRECTIONS direction, int max_width);
 void UpdateMap(MAP* map);
 int UpdateGuards(MAP* map);
 void PrintMap(MAP* map);
@@ -196,7 +201,7 @@ int UpdateGuards(MAP* map)
                     if(map->allGuards[g]->x < 0){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->x = map->allGuards[g]->old_x + 1;
+                        map->allGuards[g]->x++;
                     }
                     break;
 
@@ -205,7 +210,7 @@ int UpdateGuards(MAP* map)
                     if(map->allGuards[g]->x >= map->heigth){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->x = map->allGuards[g]->old_x - 1;
+                        map->allGuards[g]->x--;
                     }
                     break;
 
@@ -214,7 +219,7 @@ int UpdateGuards(MAP* map)
                     if(map->allGuards[g]->y >= map->width){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->y = map->allGuards[g]->old_y - 1;
+                        map->allGuards[g]->y--;
                     }
                     break;
 
@@ -223,16 +228,31 @@ int UpdateGuards(MAP* map)
                     if(map->allGuards[g]->y < 0){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
-                        map->allGuards[g]->y = map->allGuards[g]->old_y + 1;
+                        map->allGuards[g]->y++;
                     }
                     break;
 
                 default: break;
             }
 
+            map->allGuards[g]->rangePos = ComputeRangePosition(
+                map->allGuards[g]->rangePos, 
+                map->allGuards[g]->range, 
+                map->allGuards[g]->x,
+                map->allGuards[g]->y, 
+                map->allGuards[g]->direction,
+                map->width);
+
             map->map[POS(map->allGuards[g]->old_x, map->allGuards[g]->old_y, map->width)] = ' ';
             map->map[POS(map->allGuards[g]->x, map->allGuards[g]->y, map->width)] = map->allGuards[g]->face;
             map->allGuards[g]->frameCounter = 0;
+
+            for(int i = 0; i < map->allGuards[g]->range; i++)
+            {
+                int pos = map->allGuards[g]->rangePos[i];
+                if(pos >= 0 && pos < map->fullSize)
+                    map->map[pos] = 'g';
+            }
         }
     }
 
@@ -293,7 +313,7 @@ void PrintMap(MAP* map)
     
     // Top border
     printf("/");
-    for(int i = 0; i < map->width; i++) printf("-");
+    for(int i = 0; i < 3*map->width; i++) printf("-");
     printf("\\\n");
 
     // Map
@@ -309,18 +329,23 @@ void PrintMap(MAP* map)
             {
                 case C_PLAYER:
                     BackGroundAndText(map->player->backGround, map->player->faceColor);
-                    printf("%c", toPrint);
+                    printf("-%c-", toPrint);
                     break;
                 
                 case C_GUARD:
                     BackGroundAndText(map->guardBackGround, map->guardColor);
-                    printf("%c", toPrint);
+                    printf("-%c-", toPrint);
+                    break;
+
+                case C_GUARD_RANGE:
+                    BackGroundAndText(map->guardBackGround, map->guardColor);
+                    printf("   ");
                     break;
                 
                 case C_NOTHING:
                 default:
                     BackGroundAndText(COL_BLACK, COL_NORMAL);
-                    printf("%c", toPrint);
+                    printf(" %c ",toPrint);
                     break;
             }
             BackGroundAndText(COL_BLACK, COL_NORMAL);
@@ -330,7 +355,7 @@ void PrintMap(MAP* map)
 
     // Bottom border
     printf("\\");
-    for(int i = 0; i < map->width; i++) printf("-");
+    for(int i = 0; i < 3*map->width; i++) printf("-");
     printf("/");;
 }
 
@@ -343,6 +368,52 @@ void AddPlayer(MAP* map, PLAYER* player)
     map->specialChar[C_PLAYER] = map->player->face;
 }
 
+int* ComputeRangePosition(int* oldRange, int range, int x, int y, DIRECTIONS direction, int max_width)
+{
+    int* rangePos = oldRange;
+    if(rangePos == NULL) rangePos = malloc(range * sizeof(int));
+
+    int pos = POS(x, y, max_width), move;
+    switch(direction)
+    {
+        case NORD:
+            move = -max_width;
+            break;
+
+        case SOUTH:
+            move = max_width;
+            break;
+            
+        case EAST:
+            move = 1;
+            break;
+            
+        case WEST:
+            move = -1;
+            break;
+            
+        default:
+            move = 0;
+            break;
+    }
+
+    
+    for(int i = 0; i < range; i++)
+    {
+        int nextPosition = pos + move*(i + 1);
+
+        if((direction == NORD || direction == SOUTH) ||
+            ((direction == EAST || direction == WEST) && ((nextPosition / max_width) == (pos / max_width))))
+            rangePos[i] = nextPosition;
+        else{
+            rangePos[i] = -1;
+        } 
+    }
+        
+
+    return rangePos;
+}
+
 GUARD* RandomGuard(int width, int heigth)
 {
     GUARD* g = malloc(sizeof(GUARD));
@@ -351,13 +422,19 @@ GUARD* RandomGuard(int width, int heigth)
     g->old_y = g->y = RandomIntFrom0ToMax(width);
     g->direction = RandomInt(1, 3);
 
-    g->face = 'G';   
+    g->range = RandomInt(1, 5);;
+    g->rangePos = ComputeRangePosition(NULL, g->range, g->x, g->y, g->direction, width);
+
+    g->face = 'G';
+    g->rangeChar = 'g';   
 
     g->speed = 10;
     g->frameCounter = 0;
 
     return g;
 }
+
+
 
 void CreateRandomGuards(MAP* map, int totalGuards)
 {
@@ -370,11 +447,19 @@ void CreateRandomGuards(MAP* map, int totalGuards)
 
         // Add the new guard
         map->allGuards[g] = guard;
-
         map->map[POS(guard->x, guard->y, map->width)] = guard->face;
+
+        // Add guard Range
+        for(int i = 0; i < guard->range; i++)
+        {
+            int pos = guard->rangePos[i];
+            if(pos >= 0 && pos < map->fullSize)
+                map->map[pos] = 'g';
+        }
     }
 
     map->specialChar[C_GUARD] = 'G';
+    map->specialChar[C_GUARD_RANGE] = 'g';
     map->guardColor = COL_BLACK;
     map->guardBackGround = COL_LIGHT_BLUE;
 }
