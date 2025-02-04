@@ -9,8 +9,8 @@
 #define FPS 6
 
 // Data found in the PowerShell settings
-#define MAX_W 120
-#define MAX_H 30
+#define MAX_W 118   // 120 - 2
+#define MAX_H 28    // 30 - 2
 
 // Key for player movment
 #define NO_INPUT -1
@@ -22,7 +22,7 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#define POS(x, y) (x + y*MAX_W)
+#define POS(x, y, max_w) (x + y*max_w)
 
 // Oposite direction have opposite sign
 typedef enum{
@@ -57,6 +57,7 @@ typedef struct{
 }GUARD;
 
 typedef struct{
+    int width, heigth;
     int fullSize;
     char* map;
     PLAYER* player;
@@ -76,14 +77,16 @@ int UpdateGuards(MAP* map);
 void PrintMap(MAP* map);
 void FreeMap(MAP* map);
 
-void UpdatePosition(PLAYER* p, int key_pressed);
+void UpdatePosition(MAP* map, PLAYER* p, int key_pressed);
 
 int main(int argc, char **argv)
 {
-    // Map Initialization
-    MAP* map = InitializeMap(MAX_W, MAX_H);
-
     ClearAndHome();
+
+    // Map Initialization
+    int map_width = 60, map_heigth = 20;
+    MAP* map = InitializeMap(MIN(MAX_W, map_width), MIN(MAX_H, map_heigth));
+    printf("Map size: %dx%d\n", map->width, map->heigth);
 
     // Create a player
     printf("Choose your character (*smash bros theme in the background*): ");
@@ -119,7 +122,7 @@ int main(int argc, char **argv)
         case DOWN:
         case RIGHT:
         case LEFT:
-            UpdatePosition(player, key);
+            UpdatePosition(map, player, key);
             break;
 
         default:
@@ -143,8 +146,8 @@ void UpdateMap(MAP* map)
     // Player update
     if(map->player->updated)
     {
-        map->map[POS(map->player->old_x, map->player->old_y)] = ' ';
-        map->map[POS(map->player->x, map->player->y)] = map->player->face;
+        map->map[POS(map->player->old_x, map->player->old_y, map->width)] = ' ';
+        map->map[POS(map->player->x, map->player->y, map->width)] = map->player->face;
     }
 
     int guardUpdate = UpdateGuards(map);
@@ -182,7 +185,7 @@ int UpdateGuards(MAP* map)
 
                 case SOUTH:
                     map->allGuards[g]->y++;
-                    if(map->allGuards[g]->y >= MAX_H){
+                    if(map->allGuards[g]->y >= map->heigth){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
                         map->allGuards[g]->y = map->allGuards[g]->old_y - 1;
@@ -191,7 +194,7 @@ int UpdateGuards(MAP* map)
 
                 case EAST:
                     map->allGuards[g]->x++;
-                    if(map->allGuards[g]->x >= MAX_W){
+                    if(map->allGuards[g]->x >= map->width){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
                         map->allGuards[g]->x = map->allGuards[g]->old_x - 1;
@@ -210,8 +213,8 @@ int UpdateGuards(MAP* map)
                 default: break;
             }
 
-            map->map[POS(map->allGuards[g]->old_x, map->allGuards[g]->old_y)] = ' ';
-            map->map[POS(map->allGuards[g]->x, map->allGuards[g]->y)] = map->allGuards[g]->face;
+            map->map[POS(map->allGuards[g]->old_x, map->allGuards[g]->old_y, map->width)] = ' ';
+            map->map[POS(map->allGuards[g]->x, map->allGuards[g]->y, map->width)] = map->allGuards[g]->face;
             map->allGuards[g]->frameCounter = 0;
         }
     }
@@ -219,7 +222,7 @@ int UpdateGuards(MAP* map)
     return update;
 }
 
-void UpdatePosition(PLAYER* p, int key_pressed)
+void UpdatePosition(MAP* map, PLAYER* p, int key_pressed)
 {
     // Position already updated for this frame
     if(p->updated)
@@ -240,16 +243,16 @@ void UpdatePosition(PLAYER* p, int key_pressed)
 
         case DOWN:
             p->y++;
-            if(p->y >= MAX_H){
-                p->y = MAX_H - 1;
+            if(p->y >= map->heigth){
+                p->y = map->heigth - 1;
                 p->updated = 0;
             }
             break;
 
         case RIGHT:
             p->x++;
-            if(p->x >= MAX_W){
-                p->x = MAX_W - 1;
+            if(p->x >= map->width){
+                p->x = map->width - 1;
                 p->updated = 0;
             }
             break;
@@ -270,25 +273,42 @@ void UpdatePosition(PLAYER* p, int key_pressed)
 void PrintMap(MAP* map)
 {
     ClearAndHome();
-    printf("%s", map->map);
+    
+    // Top border
+    printf("/");
+    for(int i = 0; i < map->width; i++) printf("-");
+    printf("\\\n");
+
+    // Map
+    for(int r = 0; r < map->heigth; r++)
+    {
+        printf("|");
+        for(int c = 0; c < map->width; c++) printf("%c", map->map[POS(c, r, map->width)]);
+        printf("|\n");
+    }
+
+    // Bottom border
+    printf("\\");
+    for(int i = 0; i < map->width; i++) printf("-");
+    printf("/");;
 }
 
 void AddPlayer(MAP* map, PLAYER* player)
 {
     map->player = player;
 
-    map->map[POS(map->player->x, map->player->y)] = map->player->face;
+    map->map[POS(map->player->x, map->player->y, map->width)] = map->player->face;
 }
 
-GUARD* RandomGuard()
+GUARD* RandomGuard(int width, int heigth)
 {
     GUARD* g = malloc(sizeof(GUARD));
 
-    g->old_x = g->x = RandomIntFrom0ToMax(MAX_W);
-    g->old_y = g->y = RandomIntFrom0ToMax(MAX_H);
+    g->old_x = g->x = RandomIntFrom0ToMax(width);
+    g->old_y = g->y = RandomIntFrom0ToMax(heigth);
     g->direction = RandomInt(1, 3);
 
-    g->speed = RandomInt(10, 15);
+    g->speed = 10;
     g->face = 'G';
     g->frameCounter = 0;
 
@@ -302,12 +322,12 @@ void CreateRandomGuards(MAP* map, int totalGuards)
 
     for(int g = 0; g < totalGuards; g++)
     {
-        GUARD* guard = RandomGuard();
+        GUARD* guard = RandomGuard(map->width, map->heigth);
 
         // Add the new guard
         map->allGuards[g] = guard;
 
-        map->map[POS(guard->x, guard->y)] = guard->face;
+        map->map[POS(guard->x, guard->y, map->width)] = guard->face;
     }
 }
 
@@ -315,6 +335,8 @@ MAP* InitializeMap(int width, int heigth)
 {
     MAP* map = malloc(sizeof(MAP));
 
+    map->width = width;
+    map->heigth = heigth;
     map->fullSize = width*heigth;
 
     map->map = malloc((map->fullSize + 1) * sizeof(char));
