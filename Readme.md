@@ -2,11 +2,20 @@
 - Move your character to the finish line, without alerting the guards
 - The faster you move, the more noise you will make
 
-## Re-learing project
-I had to pause programming for a while, beacause of university. Right now (05/06/24 it), i only have the last two exams before graduaiting in computer engineeiring, so i hope i will have all the time i want during the summer to fully commit to this project. 
-This is just a fun way to refresh my C programming skills, before starting the master degree in Data Science/Quantum Engineeiring (yet to decide).
+## How to run the game
+You will need to compile and create you own *.exe* file:
+- Open the command window (CMD or Powershell) and move to this folder;
+- Type the following command: `gcc main.c -o StealthGame.exe`
+- Now run the game with: `.\StealthGame.exe`
 
-### What i had trouble with
+## Why this project?
+This is just a fun way to refresh my C programming skills
+
+### Updates on the project
+- **05/06/2024** : I had to pause programming for a while, beacause of university. Right now i only have the last two exams before graduating in computer engineering, so i hope i will have all the time i want during the summer to fully commit to this project.
+- **04/02/2025**: *Good news*: I graduated in CS, and now started the master degree in Data Science. *Bad news*: I completly forgot about this project. I don't think anybody notice, but that's ok. I will try and be more consistent from now on.
+
+## What i had trouble with
 In this section (as the name suggest) I'm gonna write a small summary of what were the obstacles found during the coding, more or less detailed
 
 |Trouble code|Description|Data of the issue|Status|Notes|
