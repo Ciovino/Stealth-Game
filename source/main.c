@@ -1,13 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h> // kbhit()
+#include <time.h> // clock()
 #include "..\header\Screen.h"
+
+#define FPS 5
 
 // Data found in the PowerShell settings
 #define MAX_W 120
 #define MAX_H 30
 
 // Key for player movment
+#define NO_INPUT -1
 #define UP      119     // W
 #define DOWN    115     // S
 #define RIGHT   100     // A
@@ -32,6 +36,9 @@ typedef struct{
     int fullSize;
     char* map;
     PLAYER* player;
+    
+    int deltaTime;
+    clock_t thisFrame;
 }MAP;
 
 MAP* InitializeMap(int width, int heigth);
@@ -59,15 +66,19 @@ int main(int argc, char **argv)
     while (!kbhit()) {}
 
     // Start game
+    map->thisFrame = clock();
     AddPlayer(map, player);
     PrintMap(map);
 
     int esc = 0;
     while(!esc)
     {
-        int key;
-        while (!kbhit()) {}
-        key = getch();
+        int key = NO_INPUT;
+
+        // Check for input
+        if(kbhit()) {
+            key = getch();
+        }
 
         switch (key) {
         case ESC: esc = 1; break;
@@ -93,6 +104,10 @@ int main(int argc, char **argv)
 
 void UpdateMap(MAP* map)
 {
+    clock_t time = clock();
+    if(time - map->thisFrame < map->deltaTime)
+        return;
+
     int some_update = map->player->updated;
 
     // Player update
@@ -104,10 +119,15 @@ void UpdateMap(MAP* map)
     }
 
     if(some_update) PrintMap(map);
+    map->thisFrame = clock();
 }
 
 void UpdatePosition(PLAYER* p, int key_pressed)
 {
+    // Position already updated for this frame
+    if(p->updated)
+        return;
+
     p->old_x = p->x;
     p->old_y = p->y;
 
@@ -173,8 +193,11 @@ MAP* InitializeMap(int width, int heigth)
     for(int i = 0; i < map->fullSize; i++) map->map[i] = ' '; 
     map->map[map->fullSize] = '\0';
 
-    // No player provided
+    // No player are provided
     map->player = NULL;
+
+    // Delta time => how much time between frame, in milliseconds
+    map->deltaTime = 1000 / FPS;
 
     return map;
 }
