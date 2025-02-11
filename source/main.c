@@ -10,7 +10,7 @@
 #define FPS 6
 
 // Data found in the PowerShell settings
-#define MAX_W 38   // 120 - 2
+#define MAX_W 38   // 120/3 - 2
 #define MAX_H 28    // 30 - 2
 
 // Key for player movment
@@ -71,7 +71,7 @@ typedef struct{
 }GUARD;
 
 typedef struct{
-    int width, heigth;
+    int width, height;
     int fullSize;
     char* map;
     PLAYER* player;
@@ -88,7 +88,7 @@ typedef struct{
     int specialCharSize;
 }MAP;
 
-MAP* InitializeMap(int width, int heigth);
+MAP* InitializeMap(int width, int height);
 SPECIAL_CHARS FindSpecialChar(MAP* map, char c);
 void AddPlayer(MAP* map, PLAYER* player);
 void CreateRandomGuards(MAP* map, int totalGuards);
@@ -105,9 +105,9 @@ int main(int argc, char **argv)
     ClearAndHome();
 
     // Map Initialization
-    int map_width = 60, map_heigth = 20;
-    MAP* map = InitializeMap(MIN(MAX_W, map_width), MIN(MAX_H, map_heigth));
-    printf("Map size: %dx%d\n", map->width, map->heigth);
+    int map_width = 60, map_height = 20;
+    MAP* map = InitializeMap(MIN(MAX_W, map_width), MIN(MAX_H, map_height));
+    printf("Map size: %dx%d\n", map->width, map->height);
 
     // Create a player
     printf("Choose your character (*smash bros theme in the background*): ");
@@ -207,7 +207,7 @@ int UpdateGuards(MAP* map)
 
                 case SOUTH:
                     map->allGuards[g]->x++;
-                    if(map->allGuards[g]->x >= map->heigth){
+                    if(map->allGuards[g]->x >= map->height){
                         // Invert direction
                         map->allGuards[g]->direction *= -1;
                         map->allGuards[g]->x--;
@@ -280,8 +280,8 @@ void UpdatePosition(MAP* map, PLAYER* p, int key_pressed)
 
         case DOWN:
             p->x++;
-            if(p->x >= map->heigth){
-                p->x = map->heigth - 1;
+            if(p->x >= map->height){
+                p->x = map->height - 1;
                 p->updated = 0;
             }
             break;
@@ -317,7 +317,7 @@ void PrintMap(MAP* map)
     printf("\\\n");
 
     // Map
-    for(int r = 0; r < map->heigth; r++)
+    for(int r = 0; r < map->height; r++)
     {
         printf("|");
         for(int c = 0; c < map->width; c++)
@@ -414,11 +414,11 @@ int* ComputeRangePosition(int* oldRange, int range, int x, int y, DIRECTIONS dir
     return rangePos;
 }
 
-GUARD* RandomGuard(int width, int heigth)
+GUARD* RandomGuard(int width, int height)
 {
     GUARD* g = malloc(sizeof(GUARD));
 
-    g->old_x = g->x = RandomIntFrom0ToMax(heigth);
+    g->old_x = g->x = RandomIntFrom0ToMax(height);
     g->old_y = g->y = RandomIntFrom0ToMax(width);
     g->direction = RandomInt(1, 3);
 
@@ -434,8 +434,6 @@ GUARD* RandomGuard(int width, int heigth)
     return g;
 }
 
-
-
 void CreateRandomGuards(MAP* map, int totalGuards)
 {
     map->totalGuards = totalGuards;
@@ -443,7 +441,7 @@ void CreateRandomGuards(MAP* map, int totalGuards)
 
     for(int g = 0; g < totalGuards; g++)
     {
-        GUARD* guard = RandomGuard(map->width, map->heigth);
+        GUARD* guard = RandomGuard(map->width, map->height);
 
         // Add the new guard
         map->allGuards[g] = guard;
@@ -478,13 +476,13 @@ SPECIAL_CHARS FindSpecialChar(MAP* map, char c)
     return found;
 }
 
-MAP* InitializeMap(int width, int heigth)
+MAP* InitializeMap(int width, int height)
 {
     MAP* map = malloc(sizeof(MAP));
 
     map->width = width;
-    map->heigth = heigth;
-    map->fullSize = width*heigth;
+    map->height = height;
+    map->fullSize = width*height;
 
     map->map = malloc((map->fullSize + 1) * sizeof(char));
     for(int i = 0; i < map->fullSize; i++) map->map[i] = ' '; 
