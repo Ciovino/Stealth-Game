@@ -7,10 +7,10 @@
 #include "..\header\Random.h"
 #include "..\header\Colori.h"
 
-#define FPS 6
+#define FPS 3
 
 // Data found in the PowerShell settings
-#define MAX_W 38   // 120/3 - 2
+#define MAX_W 118   // 120 - 2
 #define MAX_H 28    // 30 - 2
 
 // Key for player movment
@@ -38,6 +38,7 @@ typedef enum{
     C_GUARD,
     C_GUARD_RANGE,
     C_PLAYER,
+    C_NOISE,
 }SPECIAL_CHARS;
 
 /*** Stealth Game ***/
@@ -51,6 +52,9 @@ typedef struct{
     
     COLOR faceColor;
     COLOR backGround;
+
+    int noise_radius;
+    char noise;
 }PLAYER;
 
 typedef struct{
@@ -112,15 +116,16 @@ int main(int argc, char **argv)
     // Create a player
     printf("Choose your character (*smash bros theme in the background*): ");
     PLAYER* player = malloc(sizeof(PLAYER));
-    player->x = player->y = player->old_x = player->old_y = player->updated = 0;
+    player->x = player->y = player->old_x = player->old_y = 1; player->updated = player->noise_radius = 0;
     player->faceColor = COL_LIGHT_CYAN; player->backGround = COL_BLACK;
     player->face = getchar(); // Let player choose their own character
+    player->noise = '~';
 
     printf("this u -> %c\n", player->face);
     while (!kbhit()) {}
 
     // Create some guards
-    CreateRandomGuards(map, 10);
+    CreateRandomGuards(map, 3);
 
     // Start game
     map->thisFrame = clock();
@@ -159,22 +164,53 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void BuildNoiseRadius(MAP* map)
+{
+    for(int i = map->player->x - map->player->noise_radius; i <= map->player->x + map->player->noise_radius; i++)
+    {
+        if(i < 0 || i >= map->height) continue;
+
+        for(int j = map->player->y - map->player->noise_radius; j <= map->player->y + map->player->noise_radius; j++)
+        {
+            if(j < 0 || j >= map->width) continue;
+            
+            map->map[POS(i, j, map->width)] = map->player->noise;
+        }
+    }
+
+    map->map[POS(map->player->x, map->player->y, map->width)] = map->player->face;
+}
+
+void ClearMap(MAP* map)
+{
+    for(int i = 0; i < map->fullSize; i++)
+    {
+        if(FindSpecialChar(map, map->map[i]) >= C_PLAYER) map->map[i] = ' ';
+    }
+}
+
 void UpdateMap(MAP* map)
 {
     clock_t time = clock();
     if(time - map->thisFrame < map->deltaTime)
         return;
 
+    ClearMap(map);
+
     // Player update
     if(map->player->updated)
     {
-        map->map[POS(map->player->old_x, map->player->old_y, map->width)] = ' ';
-        map->map[POS(map->player->x, map->player->y, map->width)] = map->player->face;
+        map->player->noise_radius++;
     }
+    else {
+        if(map->player->noise_radius != 0) map->player->updated = 1;
+        map->player->noise_radius = MAX(0, map->player->noise_radius - 1);
+    }
+    BuildNoiseRadius(map);
 
     int guardUpdate = UpdateGuards(map);
 
-    int someUpdate = map->player->updated || guardUpdate;
+    int someUpdate = map->player->updated || guardUpdate ;
     if(someUpdate) PrintMap(map);
 
     map->thisFrame = clock();
@@ -313,7 +349,7 @@ void PrintMap(MAP* map)
     
     // Top border
     printf("/");
-    for(int i = 0; i < 3*map->width; i++) printf("-");
+    for(int i = 0; i < map->width; i++) printf("-");
     printf("\\\n");
 
     // Map
@@ -329,23 +365,28 @@ void PrintMap(MAP* map)
             {
                 case C_PLAYER:
                     BackGroundAndText(map->player->backGround, map->player->faceColor);
-                    printf("-%c-", toPrint);
+                    printf("%c", toPrint);
+                    break;
+                
+                case C_NOISE:
+                    BackGroundAndText(COL_WHITE, COL_RED);
+                    printf("%c", toPrint);
                     break;
                 
                 case C_GUARD:
                     BackGroundAndText(map->guardBackGround, map->guardColor);
-                    printf("-%c-", toPrint);
+                    printf("%c", toPrint);
                     break;
 
                 case C_GUARD_RANGE:
                     BackGroundAndText(map->guardBackGround, map->guardColor);
-                    printf("   ");
+                    printf(" ");
                     break;
                 
                 case C_NOTHING:
                 default:
                     BackGroundAndText(COL_BLACK, COL_NORMAL);
-                    printf(" %c ",toPrint);
+                    printf("%c",toPrint);
                     break;
             }
             BackGroundAndText(COL_BLACK, COL_NORMAL);
@@ -355,7 +396,7 @@ void PrintMap(MAP* map)
 
     // Bottom border
     printf("\\");
-    for(int i = 0; i < 3*map->width; i++) printf("-");
+    for(int i = 0; i < map->width; i++) printf("-");
     printf("/");;
 }
 
@@ -366,6 +407,7 @@ void AddPlayer(MAP* map, PLAYER* player)
     map->map[POS(map->player->x, map->player->y, map->width)] = map->player->face;
 
     map->specialChar[C_PLAYER] = map->player->face;
+    map->specialChar[C_NOISE] = map->player->noise;
 }
 
 int* ComputeRangePosition(int* oldRange, int range, int x, int y, DIRECTIONS direction, int max_width)
@@ -422,13 +464,13 @@ GUARD* RandomGuard(int width, int height)
     g->old_y = g->y = RandomIntFrom0ToMax(width);
     g->direction = RandomInt(1, 3);
 
-    g->range = RandomInt(1, 5);;
+    g->range = RandomInt(1, 5);
     g->rangePos = ComputeRangePosition(NULL, g->range, g->x, g->y, g->direction, width);
 
     g->face = 'G';
     g->rangeChar = 'g';   
 
-    g->speed = 10;
+    g->speed = RandomInt(5, 11);
     g->frameCounter = 0;
 
     return g;
