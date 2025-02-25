@@ -224,6 +224,7 @@ int UpdateGuards(MAP* map)
     {
         map->allGuards[g]->frameCounter++;
 
+        // TODO: Invert the condition (NEVER NESTER)
         if(map->allGuards[g]->frameCounter >= map->allGuards[g]->speed) // Move
         {
             update = 1;
