@@ -17,11 +17,11 @@ struct Player{
     // Character
     char face;
     COLOR faceColor;
-    COLOR backGround;    
+    COLOR backgroundColor;    
 
     // Noise radius
-    int noise_radius;
-    char noise_face;
+    int noiseRadius;
+    char noiseFace;
     COLOR noiseColor;
     COLOR noiseBackGround;
 
@@ -43,14 +43,14 @@ PLAYER NewPlayer(char face, int startX, int startY, int maxHeigth, int maxWidth)
 
     // Apperance
     p->face = face;
-    p->noise_face = '~';
+    p->noiseFace = '~';
     p->faceColor = COL_LIGHT_CYAN;
-    p->backGround = COL_BLACK;
+    p->backgroundColor = COL_BLACK;
     p->noiseColor = COL_LIGHT_BLUE;
-    p->backGround = COL_BLACK;
+    p->backgroundColor = COL_BLACK;
 
     // Starting values
-    p->updated = p->noise_radius = 0;
+    p->updated = p->noiseRadius = 0;
 
     // Map limit
     p->maxHeigth = maxHeigth;
@@ -115,11 +115,11 @@ void MovePlayer(PLAYER p, PLAYER_MOVEMENT move)
 int UpdatePlayer(PLAYER p)
 {
     if(p->updated)
-        p->noise_radius++;
+        p->noiseRadius++;
     else
-        p->noise_radius = MAX(-1, p->noise_radius - 1);
+        p->noiseRadius = MAX(-1, p->noiseRadius - 1);
 
-    return p->updated || (p->noise_radius != -1);
+    return p->updated || (p->noiseRadius != -1);
 }
 
 void ResetPlayer(PLAYER p)

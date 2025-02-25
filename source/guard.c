@@ -17,7 +17,7 @@ struct guard{
     COLOR backgroundColor;
 
     // Range
-    char rangeChar;
+    char rangeFace;
     int range;
     int* rangePos;
 
@@ -89,7 +89,7 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     g->backgroundColor = COL_LIGHT_BLUE;
 
     // Range
-    g->rangeChar = 'g';
+    g->rangeFace = 'g';
     g->range = range;
     g->rangePos = ComputeRange(NULL, range, startX, startY, direction, maxWidth);
 
