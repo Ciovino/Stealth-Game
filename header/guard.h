@@ -1,7 +1,7 @@
 #ifndef GUARD_H_INCLUDED
 #define GUARD_H_INCLUDED
 
-#include "..\header\face_color.h"
+#include "../header/face_color.h"
 
 typedef enum{
     NORD    = -2, 
@@ -21,9 +21,11 @@ int UpdateGuard(GUARD g);
 
 // Getters
 int GetGuardPosition(GUARD g);
-int* GetRangePosition(GUARD g);
+int* GetRangePositions(GUARD g);
+int GetRange(GUARD g);
 char GetGuardFace(GUARD g);
 FACE_COLOR GetGuardFaceColor(GUARD g);
+char GetRangeFace(GUARD g);
 FACE_COLOR GetRangeCol(GUARD g);
 
 #endif

@@ -91,6 +91,20 @@ void AddPlayer(MAP m, PLAYER p)
     AddFC(m->specialChar, GetNoise(m->player));
 }
 
+static void StoreGuardOnMap(MAP m, GUARD g)
+{
+    m->map[GetGuardPosition(g)] = GetGuardFace(g);
+
+    int* guardRange = GetRangePositions(g);
+    int range = GetRange(g);
+
+    for(int i = 0; i < range; i++)
+    {
+        if(guardRange[i] == -1) continue;
+        m->map[guardRange[i]] = GetRangeFace(g);
+    }
+}
+
 void CreateRandomGuards(MAP m, int totalGuards)
 {
     m->totalGuards = totalGuards;
@@ -106,8 +120,7 @@ void CreateRandomGuards(MAP m, int totalGuards)
         GUARD_DIRECTION direction = RandomInt(1, 3);
 
         m->allGuards[i] = NewGuard(startX, startY, range, direction, speed, m->height, m->width);
-
-        m->map[GetGuardPosition(m->allGuards[i])] = GetGuardFace(m->allGuards[i]);
+        StoreGuardOnMap(m, m->allGuards[i]);
 
         AddFC(m->specialChar, GetGuardFaceColor(m->allGuards[i]));
         AddFC(m->specialChar, GetRangeCol(m->allGuards[i]));

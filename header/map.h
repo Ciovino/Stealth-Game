@@ -3,7 +3,7 @@
 
 #include "../header/player.h"
 #include "../header/guard.h"
-#include "..\header\face_color.h"
+#include "../header/face_color.h"
 
 typedef struct map* MAP;
 

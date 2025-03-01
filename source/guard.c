@@ -85,7 +85,7 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     g->face = NewFaceColor('G', COL_BLACK, COL_LIGHT_BLUE);
 
     // Range
-    g->range = NewFaceColor('g', COL_BLACK, COL_LIGHT_BLUE);
+    g->range = NewFaceColor('g', COL_LIGHT_BLUE, COL_LIGHT_BLUE);
     g->rangeLength = range;
     g->rangePos = ComputeRange(NULL, range, startX, startY, direction, maxWidth);
 
@@ -181,6 +181,11 @@ int* GetRangePositions(GUARD g)
     return g->rangePos;
 }
 
+int GetRange(GUARD g)
+{
+    return g->rangeLength;
+}
+
 char GetGuardFace(GUARD g)
 {
     return GetFace(g->face);
@@ -189,6 +194,11 @@ char GetGuardFace(GUARD g)
 FACE_COLOR GetGuardFaceColor(GUARD g)
 {
     return g->face;
+}
+
+char GetRangeFace(GUARD g)
+{
+    return GetFace(g->range);
 }
 
 FACE_COLOR GetRangeCol(GUARD g)
