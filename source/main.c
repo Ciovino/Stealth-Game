@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <conio.h> // kbhit()
 
-#include "..\header\Screen.h"
+#include "../header/Screen.h"
 
 #include "../header/map.h"
 #include "../header/player.h"
@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     while (!kbhit()) {}    
 
     // Start game
+
     PrintMap(map);
 
     FreeMap(map);
