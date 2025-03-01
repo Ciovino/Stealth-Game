@@ -60,18 +60,18 @@ void FreePlayer(PLAYER p)
     free(p);   
 }
 
-static int CheckMove(PLAYER_MOVEMENT move)
+static int CheckMove(int move)
 {
     int res = 0;
     switch (move) {
-        case UP:
-        case DOWN:
-        case RIGHT:
-        case LEFT:
+        case 119:
+        case 115:
+        case 100:
+        case 97:
             res =  1;
             break;
         
-        case ESC: 
+        case 27: 
             res = -1;
             break;
 
@@ -82,56 +82,52 @@ static int CheckMove(PLAYER_MOVEMENT move)
     return res;
 }
 
-int MovePlayer(PLAYER p, PLAYER_MOVEMENT move)
+int CalculatePosition(PLAYER p, int move)
 {
-    // Position already updated for this frame
-    if(p->updated) return 0;
+    // ESC pressed, exit from game
+    if(CheckMove(move) == -1) return -2*p->maxWidth;
 
-    int check = CheckMove(move);
-    if(check != 1) return check; 
-
+    // Save old position
     p->old_x = p->x;
     p->old_y = p->y;
 
-    p->updated = 1;
+    // Position already updated this frame
+    if(p->updated) return POS(p->x, p->y, p->maxWidth);
+
+    // Compute new position
     switch (move) {
-        case UP:
+        case 119:
             p->x--;
-            if(p->x < 0){
-                p->x = 0;
-                p->updated = 0;
-            }
             break;
 
-        case DOWN:
+        case 115:
             p->x++;
-            if(p->x >= p->maxHeight){
-                p->x = p->maxHeight - 1;
-                p->updated = 0;
-            }
             break;
 
-        case RIGHT:
+        case 100:
             p->y++;
-            if(p->y >= p->maxWidth){
-                p->y = p->maxWidth - 1;
-                p->updated = 0;
-            }
             break;
 
-        case LEFT:
+        case 97:
             p->y--;
-            if(p->y < 0){
-                p->y = 0;
-                p->updated = 0;
-            }
             break;
 
         default:
             break;
     }
 
-    return 1;
+    return POS(p->x, p->y, p->maxWidth);
+}
+
+void ConfirmePosition(PLAYER p)
+{
+    p->updated = 1;
+}
+
+void RejectPosition(PLAYER p)
+{   
+    p->x = p->old_x;
+    p->y = p->old_y;
 }
 
 int UpdatePlayer(PLAYER p)
@@ -154,11 +150,6 @@ int GetPlayerPosition(PLAYER p)
     return POS(p->x, p->y, p->maxWidth);
 }
 
-int GetNoiseRadius(PLAYER p)
-{
-    return p->noiseRadius;
-}
-
 FACE_COLOR GetPlayerFaceColor(PLAYER p)
 {
     return p->face;
@@ -167,6 +158,11 @@ FACE_COLOR GetPlayerFaceColor(PLAYER p)
 char GetPlayerFace(PLAYER p)
 {
     return GetFace(p->face);
+}
+
+int GetNoiseRadius(PLAYER p)
+{
+    return p->noiseRadius;
 }
 
 FACE_COLOR GetNoise(PLAYER p)

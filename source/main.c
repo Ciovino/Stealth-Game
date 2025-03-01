@@ -1,10 +1,7 @@
-#include <stdio.h>
 #include <conio.h> // kbhit()
 
 #include "../header/Screen.h"
-
 #include "../header/map.h"
-#include "../header/player.h"
 
 #define FPS 3
 
@@ -28,16 +25,21 @@ int main(int argc, char **argv)
     // Add some guards
     CreateRandomGuards(map, 4);
 
-    // Create a player
-    PLAYER player = NewPlayer('S', 1, 1, GetMapHeight(map), GetMapWidth(map));
-    AddPlayer(map, player);
+    // Add player
+    AddPlayer(map, 'S', 1, 1);
 
-    printf("this u -> %c\n", GetPlayerFace(player));
-    while (!kbhit()) {}    
+    StartGame(map);
 
-    // Start game
+    int keepGoing = 1;
+    while(keepGoing)
+    {
+        int key = NO_INPUT;
+        if(kbhit()) key = getch();
 
-    PrintMap(map);
+        keepGoing = MovePlayer(map, key);
+
+        UpdateMap(map);
+    }
 
     FreeMap(map);
     return 0;

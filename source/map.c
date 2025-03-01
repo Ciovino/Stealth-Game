@@ -82,8 +82,10 @@ void FreeMap(MAP m)
     free(m);
 }
 
-static void SetPlayerOnMap(MAP m)
+static int SetPlayerOnMap(MAP m)
 {
+    int update = UpdatePlayer(m->player);
+
     int noiseRadius = GetNoiseRadius(m->player),
         playerPos = GetPlayerPosition(m->player);
 
@@ -108,18 +110,46 @@ static void SetPlayerOnMap(MAP m)
     }
 
     m->map[playerPos] = GetPlayerFace(m->player);
+
+    ResetPlayer(m->player);
+    return update;
 }
 
-void AddPlayer(MAP m, PLAYER p)
+void AddPlayer(MAP m, char face, int startX, int startY)
 {
-    m->player = p;
-
-    // Set Position
-    SetPlayerOnMap(m);
+    m->player = NewPlayer(face, startX, startY, m->height, m->width);
 
     // Save characteristics
     AddFC(m->specialChar, GetPlayerFaceColor(m->player));
     AddFC(m->specialChar, GetNoise(m->player));
+}
+
+static int EvaluatePlayerPosition(MAP m, int newPosition)
+{
+    // Check Out of Bounds
+    if(newPosition < 0 || newPosition >= m->fullSize) return 0;
+
+    // Check if the position is occupied
+    // N.B: player noise counts as free spaces
+    if(m->map[newPosition] != ' ' && m->map[newPosition] != GetNoiseFace(m->player))
+        return 0;
+    
+    return 1;
+}
+
+int MovePlayer(MAP m, PLAYER_MOVEMENT move)
+{
+    int playerMove = CalculatePosition(m->player, move);
+
+    // Exit from game
+    if(playerMove < -m->width) return 0;
+
+    if(EvaluatePlayerPosition(m, playerMove))
+        ConfirmePosition(m->player);
+    else
+        RejectPosition(m->player);
+
+    return 1;
 }
 
 static void SetGuardOnMap(MAP m, GUARD g)
@@ -134,6 +164,18 @@ static void SetGuardOnMap(MAP m, GUARD g)
         if(guardRange[i] < 0) continue;
         m->map[guardRange[i]] = GetRangeFace(g);
     }
+}
+
+static int SetAllGuards(MAP m)
+{
+    int update = 0;
+    for(int i = 0; i < m->totalGuards; i++)
+    {   
+        update = update || UpdateGuard(m->allGuards[i]);
+        SetGuardOnMap(m, m->allGuards[i]);
+    }
+
+    return update;
 }
 
 void CreateRandomGuards(MAP m, int totalGuards)
@@ -151,7 +193,6 @@ void CreateRandomGuards(MAP m, int totalGuards)
         GUARD_DIRECTION direction = RandomInt(1, 3);
 
         m->allGuards[i] = NewGuard(startX, startY, range, direction, speed, m->height, m->width);
-        SetGuardOnMap(m, m->allGuards[i]);
 
         AddFC(m->specialChar, GetGuardFaceColor(m->allGuards[i]));
         AddFC(m->specialChar, GetRangeCol(m->allGuards[i]));
@@ -164,8 +205,16 @@ static void ResetMap(MAP m)
         m->map[i] = m->baseMap[i];
 }
 
-void PrintMap(MAP m)
+static void INTERNAL_PrintMap(MAP m, int forcePrint)
 {
+    ResetMap(m);
+    int guardUpdate = SetAllGuards(m);
+    int playerUpdate = SetPlayerOnMap(m);
+
+    // No update
+    if((!guardUpdate && !playerUpdate) || forcePrint) return;
+
+    // Print updated map
     ClearAndHome();
 
     // Top border
@@ -193,8 +242,11 @@ void PrintMap(MAP m)
     printf("\\");
     for(int i = 0; i < m->width; i++) printf("-");
     printf("/");
+}
 
-    ResetMap(m);
+void PrintMap(MAP m)
+{
+    INTERNAL_PrintMap(m, 0);
 }
 
 int GetMapWidth(MAP m)
@@ -205,4 +257,20 @@ int GetMapWidth(MAP m)
 int GetMapHeight(MAP m)
 {
     return m->height;
+}
+
+void StartGame(MAP m)
+{
+    m->thisFrame = clock();
+    INTERNAL_PrintMap(m, 1);
+}
+
+void UpdateMap(MAP m)
+{
+    clock_t time = clock();
+    if(time - m->thisFrame < m->deltaTime)
+        return;
+
+    PrintMap(m);
+    m->thisFrame = clock();
 }
