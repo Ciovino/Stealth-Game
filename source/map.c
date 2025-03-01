@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <conio.h>
 #include "../header/Random.h"
 #include "../header/Screen.h"
 
@@ -33,6 +34,7 @@ struct map {
     clock_t thisFrame;
 };
 
+// Create a new empty map
 MAP NewMap(int width, int height, int targetFps)
 {
     MAP m = malloc(sizeof(*m));
@@ -69,6 +71,7 @@ MAP NewMap(int width, int height, int targetFps)
     return m;
 }
 
+// Delete map and free the memory
 void FreeMap(MAP m)
 {
     free(m->map);
@@ -82,6 +85,17 @@ void FreeMap(MAP m)
     free(m);
 }
 
+// Create and add a new player
+void AddPlayer(MAP m, char face, int startX, int startY)
+{
+    m->player = NewPlayer(face, startX, startY, m->height, m->width);
+
+    // Save characteristics
+    AddFC(m->specialChar, GetPlayerFaceColor(m->player));
+    AddFC(m->specialChar, GetNoise(m->player));
+}
+
+// Set player and noise player on the map
 static int SetPlayerOnMap(MAP m)
 {
     int update = UpdatePlayer(m->player);
@@ -115,15 +129,7 @@ static int SetPlayerOnMap(MAP m)
     return update;
 }
 
-void AddPlayer(MAP m, char face, int startX, int startY)
-{
-    m->player = NewPlayer(face, startX, startY, m->height, m->width);
-
-    // Save characteristics
-    AddFC(m->specialChar, GetPlayerFaceColor(m->player));
-    AddFC(m->specialChar, GetNoise(m->player));
-}
-
+// Checks if the new position for player is valid
 static int EvaluatePlayerPosition(MAP m, int newPosition)
 {
     // Check Out of Bounds
@@ -137,6 +143,7 @@ static int EvaluatePlayerPosition(MAP m, int newPosition)
     return 1;
 }
 
+// Move player
 int MovePlayer(MAP m, PLAYER_MOVEMENT move)
 {
     int playerMove = CalculatePosition(m->player, move);
@@ -152,6 +159,7 @@ int MovePlayer(MAP m, PLAYER_MOVEMENT move)
     return 1;
 }
 
+// Set guards info on the map
 static void SetGuardOnMap(MAP m, GUARD g)
 {
     m->map[GetGuardPosition(g)] = GetGuardFace(g);
@@ -166,6 +174,7 @@ static void SetGuardOnMap(MAP m, GUARD g)
     }
 }
 
+// Wrapper for SetGuardOnMap
 static int SetAllGuards(MAP m)
 {
     int update = 0;
@@ -178,6 +187,7 @@ static int SetAllGuards(MAP m)
     return update;
 }
 
+// Create random guards (for testing)
 void CreateRandomGuards(MAP m, int totalGuards)
 {
     m->totalGuards = totalGuards;
@@ -199,12 +209,14 @@ void CreateRandomGuards(MAP m, int totalGuards)
     }
 }
 
+// Delete all map info
 static void ResetMap(MAP m)
 {
     for(int i = 0; i < m->fullSize; i++)
         m->map[i] = m->baseMap[i];
 }
 
+// Print map on stdout, checks if an update is needed
 static void INTERNAL_PrintMap(MAP m, int forcePrint)
 {
     ResetMap(m);
@@ -212,10 +224,11 @@ static void INTERNAL_PrintMap(MAP m, int forcePrint)
     int playerUpdate = SetPlayerOnMap(m);
 
     // No update
-    if((!guardUpdate && !playerUpdate) || forcePrint) return;
+    if((!guardUpdate && !playerUpdate) && !forcePrint) return;
 
     // Print updated map
     ClearAndHome();
+    printf("#### Stealth Game ####\n");
 
     // Top border
     printf("/");
@@ -244,27 +257,24 @@ static void INTERNAL_PrintMap(MAP m, int forcePrint)
     printf("/");
 }
 
+// Wrapper for printing the map
 void PrintMap(MAP m)
 {
     INTERNAL_PrintMap(m, 0);
 }
 
-int GetMapWidth(MAP m)
-{
-    return m->width;
-}
-
-int GetMapHeight(MAP m)
-{
-    return m->height;
-}
-
+// Print initial map
 void StartGame(MAP m)
 {
-    m->thisFrame = clock();
     INTERNAL_PrintMap(m, 1);
+    printf("\nPress any key to start");
+
+    while(!kbhit());
+
+    m->thisFrame = clock();
 }
 
+// Update Map frame
 void UpdateMap(MAP m)
 {
     clock_t time = clock();

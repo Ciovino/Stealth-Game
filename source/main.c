@@ -7,7 +7,7 @@
 
 // Data found in the PowerShell settings
 #define MAX_W 118   // 120 - 2
-#define MAX_H 28    // 30 - 2
+#define MAX_H 26    // 30 - 4
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     ClearAndHome();
 
     // Map Initialization
-    int width = 100, height = 20;
+    int width = 100, height = 100;
     MAP map = NewMap(MIN(width, MAX_W), MIN(height, MAX_H), FPS);
 
     // Add some guards
@@ -42,5 +42,7 @@ int main(int argc, char **argv)
     }
 
     FreeMap(map);
+
+    ClearAndHome();
     return 0;
 }

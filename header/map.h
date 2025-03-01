@@ -17,7 +17,6 @@ typedef enum{
     ESC = 27,       // esc (exit game)
 }PLAYER_MOVEMENT;
 
-
 // Memory managment
 MAP NewMap(int width, int height, int targetFps);
 void FreeMap(MAP m);
@@ -31,8 +30,6 @@ void CreateRandomGuards(MAP m, int totalGuards);
 
 // Map operations
 void PrintMap(MAP m);
-int GetMapWidth(MAP m);
-int GetMapHeight(MAP m);
 void StartGame(MAP m);
 void UpdateMap(MAP m);
 

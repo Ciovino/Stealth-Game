@@ -27,7 +27,7 @@ struct Player{
     int maxWidth;
 };
 
-// New player
+// Create a new player
 PLAYER NewPlayer(char face, int startX, int startY, int maxHeight, int maxWidth)
 {
     if(face == 0) face = 'S'; // Default character
@@ -52,7 +52,7 @@ PLAYER NewPlayer(char face, int startX, int startY, int maxHeight, int maxWidth)
     return p;
 }
 
-// Delete from memory
+// Delete player and free the memory
 void FreePlayer(PLAYER p)
 {
     FreeFaceColor(p->face);
@@ -60,6 +60,7 @@ void FreePlayer(PLAYER p)
     free(p);   
 }
 
+// Check for valid key
 static int CheckMove(int move)
 {
     int res = 0;
@@ -82,6 +83,7 @@ static int CheckMove(int move)
     return res;
 }
 
+// Calculate new player position
 int CalculatePosition(PLAYER p, int move)
 {
     // ESC pressed, exit from game
@@ -119,17 +121,20 @@ int CalculatePosition(PLAYER p, int move)
     return POS(p->x, p->y, p->maxWidth);
 }
 
+// The new position is valid, schedule the update for next frame
 void ConfirmePosition(PLAYER p)
 {
     p->updated = 1;
 }
 
+// The new position was illegal, return to old position
 void RejectPosition(PLAYER p)
 {   
     p->x = p->old_x;
     p->y = p->old_y;
 }
 
+// Update player and player noise
 int UpdatePlayer(PLAYER p)
 {
     if(p->updated)
@@ -140,37 +145,44 @@ int UpdatePlayer(PLAYER p)
     return p->updated || (p->noiseRadius != -1);
 }
 
+// Reset internal update
 void ResetPlayer(PLAYER p)
 {
     p->updated = 0;
 }
 
+// Return player current position
 int GetPlayerPosition(PLAYER p)
 {
     return POS(p->x, p->y, p->maxWidth);
 }
 
-FACE_COLOR GetPlayerFaceColor(PLAYER p)
-{
-    return p->face;
-}
-
+// Get player character
 char GetPlayerFace(PLAYER p)
 {
     return GetFace(p->face);
 }
 
+// Get player character full information
+FACE_COLOR GetPlayerFaceColor(PLAYER p)
+{
+    return p->face;
+}
+
+// Return player noise radius
 int GetNoiseRadius(PLAYER p)
 {
     return p->noiseRadius;
 }
 
-FACE_COLOR GetNoise(PLAYER p)
-{
-    return p->noise;
-}
-
+// Get player noise character
 char GetNoiseFace(PLAYER p)
 {
     return GetFace(p->noise);
+}
+
+// Get player noise character full information
+FACE_COLOR GetNoise(PLAYER p)
+{
+    return p->noise;
 }

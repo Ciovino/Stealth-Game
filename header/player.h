@@ -20,12 +20,12 @@ void ResetPlayer(PLAYER p);
 
 // Get player info
 int GetPlayerPosition(PLAYER p);
-FACE_COLOR GetPlayerFaceColor(PLAYER p);
 char GetPlayerFace(PLAYER p);
+FACE_COLOR GetPlayerFaceColor(PLAYER p);
 
 // Get noise player info
 int GetNoiseRadius(PLAYER p);
-FACE_COLOR GetNoise(PLAYER p);
 char GetNoiseFace(PLAYER p);
+FACE_COLOR GetNoise(PLAYER p);
 
 #endif

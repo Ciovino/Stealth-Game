@@ -19,12 +19,14 @@ void FreeGuard(GUARD g);
 // Movment
 int UpdateGuard(GUARD g);
 
-// Getters
+// Get guard info
 int GetGuardPosition(GUARD g);
-int* GetRangePositions(GUARD g);
-int GetRange(GUARD g);
 char GetGuardFace(GUARD g);
 FACE_COLOR GetGuardFaceColor(GUARD g);
+
+// Get guard range info
+int GetRange(GUARD g);
+int* GetRangePositions(GUARD g);
 char GetRangeFace(GUARD g);
 FACE_COLOR GetRangeCol(GUARD g);
 

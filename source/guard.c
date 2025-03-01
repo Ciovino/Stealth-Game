@@ -29,6 +29,7 @@ struct guard{
     int maxWidth;
 };
 
+// Compute range position
 static int* ComputeRange(int* oldRange, int range, int x, int y, GUARD_DIRECTION direction, int maxWidth, int maxHeight)
 {
     int* newRange = oldRange;
@@ -73,6 +74,7 @@ static int* ComputeRange(int* oldRange, int range, int x, int y, GUARD_DIRECTION
     return newRange;
 }
 
+// Create new guard
 GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int speed, int maxHeight, int maxWidth)
 {
     GUARD g = malloc(sizeof(*g));
@@ -101,6 +103,7 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     return g;
 }
 
+// Delete guard and free the memory
 void FreeGuard(GUARD g)
 {
     FreeFaceColor(g->face);
@@ -109,98 +112,107 @@ void FreeGuard(GUARD g)
     free(g);
 }
 
+// Update guard position
 int UpdateGuard(GUARD g)
 {
     g->frameCounter++;
 
-    if(g->frameCounter >= g->speed)
+    // No update required
+    if(g->frameCounter < g->speed) return 0;
+    
+    // Update position
+    g->frameCounter = 0;
+
+    g->old_x = g->x;
+    g->old_y = g->y;
+
+    switch(g->direction)
     {
-        g->frameCounter = 0;
-
-        g->old_x = g->x;
-        g->old_y = g->y;
-
-        switch(g->direction)
-        {
-            case NORD:
-                g->x--;
-                if(g->x < 0)
-                {
-                    // Invert direction
-                    g->direction *= -1;
-                    g->x++;
-                }
-                break;
-
-            case SOUTH:
+        case NORD:
+            g->x--;
+            if(g->x < 0)
+            {
+                // Invert direction
+                g->direction *= -1;
                 g->x++;
-                if(g->x >= g->maxHeight)
-                {
-                    // Invert direction
-                    g->direction *= -1;
-                    g->x--;
-                }
-                break;
+            }
+            break;
 
-            case EAST:
-                g->y++;
-                if(g->y >= g->maxWidth)
-                {
-                    // Invert direction
-                    g->direction *= -1;
-                    g->y--;
-                }
-                break;
+        case SOUTH:
+            g->x++;
+            if(g->x >= g->maxHeight)
+            {
+                // Invert direction
+                g->direction *= -1;
+                g->x--;
+            }
+            break;
 
-            case WEST:
+        case EAST:
+            g->y++;
+            if(g->y >= g->maxWidth)
+            {
+                // Invert direction
+                g->direction *= -1;
                 g->y--;
-                if(g->y < 0)
-                {
-                    // Invert direction
-                    g->direction *= -1;
-                    g->y++;
-                }
-                break;
+            }
+            break;
 
-            default: break;
-        }
+        case WEST:
+            g->y--;
+            if(g->y < 0)
+            {
+                // Invert direction
+                g->direction *= -1;
+                g->y++;
+            }
+            break;
 
-        g->rangePos = ComputeRange(g->rangePos, g->rangeLength, g->x, g->y, g->direction, g->maxWidth, g->maxHeight);
+        default: break;
     }
 
-    return g->frameCounter == 0;
+    g->rangePos = ComputeRange(g->rangePos, g->rangeLength, g->x, g->y, g->direction, g->maxWidth, g->maxHeight);
+
+    return 1;
 }
 
+// Return guard position
 int GetGuardPosition(GUARD g)
 {
     return POS(g->x, g->y, g->maxWidth);
 }
 
-int* GetRangePositions(GUARD g)
-{
-    return g->rangePos;
-}
-
-int GetRange(GUARD g)
-{
-    return g->rangeLength;
-}
-
+// Get guard character
 char GetGuardFace(GUARD g)
 {
     return GetFace(g->face);
 }
 
+// Get guard character full information
 FACE_COLOR GetGuardFaceColor(GUARD g)
 {
     return g->face;
 }
 
+// Return guard range
+int GetRange(GUARD g)
+{
+    return g->rangeLength;
+}
+
+// Return range positions
+int* GetRangePositions(GUARD g)
+{
+    return g->rangePos;
+}
+
+// Get guard range character
 char GetRangeFace(GUARD g)
 {
     return GetFace(g->range);
 }
 
+// Get guard range character full information
 FACE_COLOR GetRangeCol(GUARD g)
 {
     return g->range;
