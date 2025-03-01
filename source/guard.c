@@ -12,13 +12,11 @@ struct guard{
     int old_y;
 
     // Character
-    char face;
-    COLOR faceColor;
-    COLOR backgroundColor;
+    FACE_COLOR face;
 
     // Range
-    char rangeFace;
-    int range;
+    FACE_COLOR range;
+    int rangeLength;
     int* rangePos;
 
     // Movment
@@ -27,7 +25,7 @@ struct guard{
     int frameCounter;
 
     // Map Limit
-    int maxHeigth;
+    int maxHeight;
     int maxWidth;
 };
 
@@ -75,7 +73,7 @@ static int* ComputeRange(int* oldRange, int range, int x, int y, GUARD_DIRECTION
     return newRange;
 }
 
-GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int speed, int maxHeigth, int maxWidth)
+GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int speed, int maxHeight, int maxWidth)
 {
     GUARD g = malloc(sizeof(*g));
 
@@ -84,13 +82,11 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     g->y = g->old_y = startY;
 
     // Character
-    g->face = 'G';
-    g->faceColor = COL_BLACK;
-    g->backgroundColor = COL_LIGHT_BLUE;
+    g->face = NewFaceColor('G', COL_BLACK, COL_LIGHT_BLUE);
 
     // Range
-    g->rangeFace = 'g';
-    g->range = range;
+    g->range = NewFaceColor('g', COL_BLACK, COL_LIGHT_BLUE);
+    g->rangeLength = range;
     g->rangePos = ComputeRange(NULL, range, startX, startY, direction, maxWidth);
 
     // Movment
@@ -99,7 +95,7 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     g->frameCounter = 0;
 
     // Map limit
-    g->maxHeigth = maxHeigth;
+    g->maxHeight = maxHeight;
     g->maxWidth = maxWidth;
 
     return g;
@@ -107,6 +103,8 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
 
 void FreeGuard(GUARD g)
 {
+    FreeFaceColor(g->face);
+    FreeFaceColor(g->range);
     free(g->rangePos);
     free(g);
 }
@@ -136,7 +134,7 @@ int UpdateGuard(GUARD g)
 
             case SOUTH:
                 g->x++;
-                if(g->x >= g->maxHeigth)
+                if(g->x >= g->maxHeight)
                 {
                     // Invert direction
                     g->direction *= -1;
@@ -167,8 +165,33 @@ int UpdateGuard(GUARD g)
             default: break;
         }
 
-        g->rangePos = ComputeRange(g->rangePos, g->range, g->x, g->y, g->direction, g->maxWidth);
+        g->rangePos = ComputeRange(g->rangePos, g->rangeLength, g->x, g->y, g->direction, g->maxWidth);
     }
 
     return g->frameCounter == 0;
+}
+
+int GetGuardPosition(GUARD g)
+{
+    return POS(g->x, g->y, g->maxWidth);
+}
+
+int* GetRangePositions(GUARD g)
+{
+    return g->rangePos;
+}
+
+char GetGuardFace(GUARD g)
+{
+    return GetFace(g->face);
+}
+
+FACE_COLOR GetGuardFaceColor(GUARD g)
+{
+    return g->face;
+}
+
+FACE_COLOR GetRangeCol(GUARD g)
+{
+    return g->range;
 }

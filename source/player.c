@@ -1,8 +1,8 @@
 #include "..\header\player.h"
-#include "..\header\Colori.h"
 #include <stdlib.h>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define POS(x, y, max_w) (x*max_w + y)
 
 struct Player{
     // Position
@@ -15,23 +15,19 @@ struct Player{
     int updated;
     
     // Character
-    char face;
-    COLOR faceColor;
-    COLOR backgroundColor;    
+    FACE_COLOR face;
 
     // Noise radius
     int noiseRadius;
-    char noiseFace;
-    COLOR noiseColor;
-    COLOR noiseBackGround;
+    FACE_COLOR noise;
 
     // Map Limit
-    int maxHeigth;
+    int maxHeight;
     int maxWidth;
 };
 
 // New player
-PLAYER NewPlayer(char face, int startX, int startY, int maxHeigth, int maxWidth)
+PLAYER NewPlayer(char face, int startX, int startY, int maxHeight, int maxWidth)
 {
     if(face == 0) face = 'S'; // Default character
 
@@ -42,18 +38,14 @@ PLAYER NewPlayer(char face, int startX, int startY, int maxHeigth, int maxWidth)
     p->y = p->old_y = startY;
 
     // Apperance
-    p->face = face;
-    p->noiseFace = '~';
-    p->faceColor = COL_LIGHT_CYAN;
-    p->backgroundColor = COL_BLACK;
-    p->noiseColor = COL_LIGHT_BLUE;
-    p->backgroundColor = COL_BLACK;
+    p->face = NewFaceColor(face, COL_LIGHT_CYAN, COL_BLACK);
+    p->noise = NewFaceColor('~', COL_LIGHT_CYAN, COL_BLACK);
 
     // Starting values
     p->updated = p->noiseRadius = 0;
 
     // Map limit
-    p->maxHeigth = maxHeigth;
+    p->maxHeight = maxHeight;
     p->maxWidth = maxWidth;
 
     return p;
@@ -62,13 +54,40 @@ PLAYER NewPlayer(char face, int startX, int startY, int maxHeigth, int maxWidth)
 // Delete from memory
 void FreePlayer(PLAYER p)
 {
-    free(p);
+    FreeFaceColor(p->face);
+    FreeFaceColor(p->noise);
+    free(p);   
 }
 
-void MovePlayer(PLAYER p, PLAYER_MOVEMENT move)
+static int CheckMove(PLAYER_MOVEMENT move)
+{
+    int res = 0;
+    switch (move) {
+        case UP:
+        case DOWN:
+        case RIGHT:
+        case LEFT:
+            res =  1;
+            break;
+        
+        case ESC: 
+            res = -1;
+            break;
+
+        default:
+            break;
+    }
+
+    return res;
+}
+
+int MovePlayer(PLAYER p, PLAYER_MOVEMENT move)
 {
     // Position already updated for this frame
-    if(p->updated) return;
+    if(p->updated) return 0;
+
+    int check = CheckMove(move);
+    if(check != 1) return check; 
 
     p->old_x = p->x;
     p->old_y = p->y;
@@ -85,8 +104,8 @@ void MovePlayer(PLAYER p, PLAYER_MOVEMENT move)
 
         case DOWN:
             p->x++;
-            if(p->x >= p->maxHeigth){
-                p->x = p->maxHeigth - 1;
+            if(p->x >= p->maxHeight){
+                p->x = p->maxHeight - 1;
                 p->updated = 0;
             }
             break;
@@ -110,6 +129,8 @@ void MovePlayer(PLAYER p, PLAYER_MOVEMENT move)
         default:
             break;
     }
+
+    return 1;
 }
 
 int UpdatePlayer(PLAYER p)
@@ -125,4 +146,24 @@ int UpdatePlayer(PLAYER p)
 void ResetPlayer(PLAYER p)
 {
     p->updated = 0;
+}
+
+int GetPlayerPosition(PLAYER p)
+{
+    return POS(p->x, p->y, p->maxWidth);
+}
+
+FACE_COLOR GetPlayerFaceColor(PLAYER p)
+{
+    return p->face;
+}
+
+char GetPlayerFace(PLAYER p)
+{
+    return GetFace(p->face);
+}
+
+FACE_COLOR GetNoise(PLAYER p)
+{
+    return p->noise;
 }

@@ -1,6 +1,9 @@
 #ifndef PLAYER_H_INCLUDED
 #define PLAYER_H_INCLUDED
 
+#include "..\header\Colori.h"
+#include "..\header\face_color.h"
+
 // Key for player movment
 typedef enum{
     NO_INPUT = -1,
@@ -14,14 +17,20 @@ typedef enum{
 typedef struct Player* PLAYER;
 
 // Memory managment
-PLAYER NewPlayer(char face, int startX, int startY, int maxHeigth, int maxWidth);
+PLAYER NewPlayer(char face, int startX, int startY, int maxHeight, int maxWidth);
 void FreePlayer(PLAYER p);
 
 // Movement
-void MovePlayer(PLAYER p, PLAYER_MOVEMENT move);
+int MovePlayer(PLAYER p, PLAYER_MOVEMENT move);
 
 // Update
 int UpdatePlayer(PLAYER p);
 void ResetPlayer(PLAYER p);
+
+// Getters
+int GetPlayerPosition(PLAYER p);
+char GetPlayerFace(PLAYER p);
+FACE_COLOR GetPlayerFaceColor(PLAYER p);
+FACE_COLOR GetNoise(PLAYER p);
 
 #endif
