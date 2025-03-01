@@ -1,5 +1,5 @@
-#include "..\header\guard.h"
-#include "..\header\Colori.h"
+#include "../header/guard.h"
+
 #include <stdlib.h>
 
 #define POS(x, y, width) (x*width + y)

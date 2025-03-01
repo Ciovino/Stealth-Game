@@ -1,5 +1,5 @@
 #include "../header/map.h"
-// #include "../header/Colori.h"
+
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -79,19 +79,47 @@ void FreeMap(MAP m)
     free(m);
 }
 
+static void SetPlayerOnMap(MAP m)
+{
+    int noiseRadius = GetNoiseRadius(m->player),
+        playerPos = GetPlayerPosition(m->player);
+
+    for(int i = -noiseRadius; i <= noiseRadius; i++)
+    {
+        int row = (playerPos + i*m->width)/m->width;
+
+        // Entire row out of bounds
+        if(row < 0 || row >= m->height) continue;
+
+        for(int j = -noiseRadius; j <= noiseRadius; j++)
+        {
+            int noisePos = playerPos + i*m->width +j;
+            
+            // Out of bounds
+            if(noisePos < 0 || noisePos >= m->fullSize) continue;
+            // Not on the same row
+            if(noisePos/m->width != row) continue;
+
+            m->map[noisePos] = GetNoiseFace(m->player);
+        }
+    }
+
+    m->map[playerPos] = GetPlayerFace(m->player);
+}
+
 void AddPlayer(MAP m, PLAYER p)
 {
     m->player = p;
 
     // Set Position
-    m->map[GetPlayerPosition(m->player)] = GetPlayerFace(m->player);
+    SetPlayerOnMap(m);
 
     // Save characteristics
     AddFC(m->specialChar, GetPlayerFaceColor(m->player));
     AddFC(m->specialChar, GetNoise(m->player));
 }
 
-static void StoreGuardOnMap(MAP m, GUARD g)
+static void SetGuardOnMap(MAP m, GUARD g)
 {
     m->map[GetGuardPosition(g)] = GetGuardFace(g);
 
@@ -120,7 +148,7 @@ void CreateRandomGuards(MAP m, int totalGuards)
         GUARD_DIRECTION direction = RandomInt(1, 3);
 
         m->allGuards[i] = NewGuard(startX, startY, range, direction, speed, m->height, m->width);
-        StoreGuardOnMap(m, m->allGuards[i]);
+        SetGuardOnMap(m, m->allGuards[i]);
 
         AddFC(m->specialChar, GetGuardFaceColor(m->allGuards[i]));
         AddFC(m->specialChar, GetRangeCol(m->allGuards[i]));

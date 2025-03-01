@@ -1,8 +1,7 @@
 #ifndef PLAYER_H_INCLUDED
 #define PLAYER_H_INCLUDED
 
-#include "..\header\Colori.h"
-#include "..\header\face_color.h"
+#include "../header/face_color.h"
 
 // Key for player movment
 typedef enum{
@@ -29,8 +28,10 @@ void ResetPlayer(PLAYER p);
 
 // Getters
 int GetPlayerPosition(PLAYER p);
-char GetPlayerFace(PLAYER p);
+int GetNoiseRadius(PLAYER p);
 FACE_COLOR GetPlayerFaceColor(PLAYER p);
+char GetPlayerFace(PLAYER p);
 FACE_COLOR GetNoise(PLAYER p);
+char GetNoiseFace(PLAYER p);
 
 #endif

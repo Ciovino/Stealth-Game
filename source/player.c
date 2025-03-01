@@ -1,4 +1,5 @@
-#include "..\header\player.h"
+#include "../header/player.h"
+
 #include <stdlib.h>
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
@@ -153,6 +154,11 @@ int GetPlayerPosition(PLAYER p)
     return POS(p->x, p->y, p->maxWidth);
 }
 
+int GetNoiseRadius(PLAYER p)
+{
+    return p->noiseRadius;
+}
+
 FACE_COLOR GetPlayerFaceColor(PLAYER p)
 {
     return p->face;
@@ -166,4 +172,9 @@ char GetPlayerFace(PLAYER p)
 FACE_COLOR GetNoise(PLAYER p)
 {
     return p->noise;
+}
+
+char GetNoiseFace(PLAYER p)
+{
+    return GetFace(p->noise);
 }
