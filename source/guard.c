@@ -29,7 +29,7 @@ struct guard{
     int maxWidth;
 };
 
-static int* ComputeRange(int* oldRange, int range, int x, int y, GUARD_DIRECTION direction, int maxWidth)
+static int* ComputeRange(int* oldRange, int range, int x, int y, GUARD_DIRECTION direction, int maxWidth, int maxHeight)
 {
     int* newRange = oldRange;
     if(newRange == NULL) newRange = malloc(range * sizeof(*newRange));
@@ -62,7 +62,7 @@ static int* ComputeRange(int* oldRange, int range, int x, int y, GUARD_DIRECTION
     {
         int nextPosition = pos + move*(i + 1);
 
-        if((direction == NORD || direction == SOUTH) ||
+        if(((direction == NORD || direction == SOUTH) && (nextPosition >= 0 && nextPosition < maxHeight*maxWidth)) ||
             ((direction == EAST || direction == WEST) && ((nextPosition / maxWidth) == (pos / maxWidth))))
             newRange[i] = nextPosition;
         else{
@@ -87,7 +87,7 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     // Range
     g->range = NewFaceColor('g', COL_LIGHT_BLUE, COL_LIGHT_BLUE);
     g->rangeLength = range;
-    g->rangePos = ComputeRange(NULL, range, startX, startY, direction, maxWidth);
+    g->rangePos = ComputeRange(NULL, range, startX, startY, direction, maxWidth, maxHeight);
 
     // Movment
     g->direction = direction;
@@ -165,7 +165,7 @@ int UpdateGuard(GUARD g)
             default: break;
         }
 
-        g->rangePos = ComputeRange(g->rangePos, g->rangeLength, g->x, g->y, g->direction, g->maxWidth);
+        g->rangePos = ComputeRange(g->rangePos, g->rangeLength, g->x, g->y, g->direction, g->maxWidth, g->maxHeight);
     }
 
     return g->frameCounter == 0;

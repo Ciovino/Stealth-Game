@@ -16,6 +16,7 @@ struct map {
 
     // Map
     char* map;
+    char* baseMap; // without player or guards
 
     // Player info
     PLAYER player;
@@ -43,10 +44,11 @@ MAP NewMap(int width, int height, int targetFps)
 
     // Map
     m->map = malloc((m->fullSize + 1) * sizeof(*m->map));
+    m->baseMap = malloc((m->fullSize + 1) * sizeof(*m->baseMap));
 
     // Build empty map
-    for(int i = 0; i < m->fullSize; i++) m->map[i] = ' ';
-    m->map[m->fullSize] = '\0';
+    for(int i = 0; i < m->fullSize; i++) m->baseMap[i] = m->map[i] = ' ';
+    m->baseMap[m->fullSize] = m->map[m->fullSize] = '\0';
 
     // Player info
     m->player = NULL;
@@ -70,6 +72,7 @@ MAP NewMap(int width, int height, int targetFps)
 void FreeMap(MAP m)
 {
     free(m->map);
+    free(m->baseMap);
     FreePlayer(m->player);
     FreeFCArray(m->specialChar);
 
@@ -128,7 +131,7 @@ static void SetGuardOnMap(MAP m, GUARD g)
 
     for(int i = 0; i < range; i++)
     {
-        if(guardRange[i] == -1) continue;
+        if(guardRange[i] < 0) continue;
         m->map[guardRange[i]] = GetRangeFace(g);
     }
 }
@@ -153,6 +156,12 @@ void CreateRandomGuards(MAP m, int totalGuards)
         AddFC(m->specialChar, GetGuardFaceColor(m->allGuards[i]));
         AddFC(m->specialChar, GetRangeCol(m->allGuards[i]));
     }
+}
+
+static void ResetMap(MAP m)
+{
+    for(int i = 0; i < m->fullSize; i++)
+        m->map[i] = m->baseMap[i];
 }
 
 void PrintMap(MAP m)
@@ -183,7 +192,9 @@ void PrintMap(MAP m)
     // Bottom border
     printf("\\");
     for(int i = 0; i < m->width; i++) printf("-");
-    printf("/");;
+    printf("/");
+
+    ResetMap(m);
 }
 
 int GetMapWidth(MAP m)
