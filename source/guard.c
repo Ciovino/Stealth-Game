@@ -105,6 +105,12 @@ GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int
     return g;
 }
 
+void FreeGuard(GUARD g)
+{
+    free(g->rangePos);
+    free(g);
+}
+
 int UpdateGuard(GUARD g)
 {
     g->frameCounter++;

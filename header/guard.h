@@ -10,7 +10,11 @@ typedef enum{
 
 typedef struct guard *GUARD;
 
+// Memory managment
 GUARD NewGuard(int startX, int startY, int range, GUARD_DIRECTION direction, int speed, int maxHeigth, int maxWidth);
+void FreeGuard(GUARD g);
+
+// Movment
 int UpdateGuard(GUARD g);
 
 #endif
