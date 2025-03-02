@@ -157,6 +157,12 @@ int GetPlayerPosition(PLAYER p)
     return POS(p->x, p->y, p->maxWidth);
 }
 
+// Return player old position
+int GetPlayerOldPosition(PLAYER p)
+{
+    return POS(p->old_x, p->old_y, p->maxWidth);
+}
+
 // Get player character
 char GetPlayerFace(PLAYER p)
 {

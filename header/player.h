@@ -20,6 +20,7 @@ void ResetPlayer(PLAYER p);
 
 // Get player info
 int GetPlayerPosition(PLAYER p);
+int GetPlayerOldPosition(PLAYER p);
 char GetPlayerFace(PLAYER p);
 FACE_COLOR GetPlayerFaceColor(PLAYER p);
 

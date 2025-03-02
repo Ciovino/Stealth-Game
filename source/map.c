@@ -132,8 +132,14 @@ static int SetPlayerOnMap(MAP m)
 // Checks if the new position for player is valid
 static int EvaluatePlayerPosition(MAP m, int newPosition)
 {
+    int oldPosition = GetPlayerOldPosition(m->player);
+
     // Check Out of Bounds
     if(newPosition < 0 || newPosition >= m->fullSize) return 0;
+    // Check same row if moving left or right (old - new == +-1)
+    if((oldPosition - newPosition == 1 || oldPosition - newPosition == -1) &&
+        (oldPosition/m->width != newPosition/m->width)) 
+        return 0;
 
     // Check if the position is occupied
     // N.B: player noise counts as free spaces
