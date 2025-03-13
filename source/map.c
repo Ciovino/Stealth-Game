@@ -250,7 +250,7 @@ static void INTERNAL_PrintMap(MAP m, int forcePrint)
             char toPrint = m->map[POS(r, c, m->width)];
             FACE_COLOR fcPrint = GetFCFromFace(m->specialChar,  toPrint);
 
-            BackGroundAndText(GetBackgroundColor(fcPrint), GetTextColor(fcPrint));
+            BackGroundAndText(GetBackgroundColor(fcPrint), GetColorText(fcPrint));
             printf("%c", toPrint);
             BackGroundAndText(COL_BLACK, COL_NORMAL);
         }

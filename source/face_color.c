@@ -1,5 +1,6 @@
 #include "../header/face_color.h"
 #include <stdlib.h>
+#include <windows.h>
 
 struct faceColor{
     char face;
@@ -12,6 +13,19 @@ struct fcArray{
     int size;
     int stored;
 };
+
+void Textcolor(COLOR color) // Funzione per i colori
+{
+    HANDLE hconsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hconsole == INVALID_HANDLE_VALUE)
+        return;
+    SetConsoleTextAttribute(hconsole, color);
+}
+
+void BackGroundAndText(COLOR BackGround, COLOR Text)
+{
+    Textcolor(BackGround * 16 + Text);
+}
 
 FACE_COLOR NewFaceColor(char face, COLOR text, COLOR background)
 {
@@ -34,7 +48,8 @@ char GetFace(FACE_COLOR fc)
     return fc->face;
 }
 
-COLOR GetTextColor(FACE_COLOR fc)
+// Changed because of conflicts with GetTextColor() in widgit.h
+COLOR GetColorText(FACE_COLOR fc)
 {
     return fc->text;
 }
