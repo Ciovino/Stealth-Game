@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
-#include "../header/Screen.h"
 
 #define POS(x, y, max_w) (x*max_w + y)
 
@@ -300,4 +299,10 @@ void UpdateMap(MAP m)
 
     PrintMap(m);
     m->thisFrame = clock();
+}
+
+void ClearAndHome()
+{
+    printf("\x1b[2J");  // Clear the screen
+    printf("\x1b[H");   // Set cursor to the top left
 }

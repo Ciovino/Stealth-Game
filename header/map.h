@@ -33,4 +33,7 @@ void PrintMap(MAP m);
 void StartGame(MAP m);
 void UpdateMap(MAP m);
 
+// Clear screen
+void ClearAndHome();
+
 #endif
