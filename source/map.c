@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
-#include "../header/Random.h"
 #include "../header/Screen.h"
 
 #define POS(x, y, max_w) (x*max_w + y)
@@ -33,6 +32,18 @@ struct map {
     int deltaTime;
     clock_t thisFrame;
 };
+
+// Random function
+static int RandomInt(int min, int max)
+{
+    if (max == min)
+        return 0;
+
+    if (min > max)
+        return RandomInt(max, min);
+
+    return (rand() % (max - min)) + min;
+}
 
 // Create a new empty map
 MAP NewMap(int width, int height, int targetFps)
@@ -202,8 +213,8 @@ void CreateRandomGuards(MAP m, int totalGuards)
     for(int i = 0; i < totalGuards; i++)
     {
         int 
-            startX = RandomIntFrom0ToMax(m->height), 
-            startY = RandomIntFrom0ToMax(m->width), 
+            startX = RandomInt(0, m->height), 
+            startY = RandomInt(0, m->width), 
             range = RandomInt(1, 5), 
             speed = RandomInt(3, 15);
         GUARD_DIRECTION direction = RandomInt(1, 3);

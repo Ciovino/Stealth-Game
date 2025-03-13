@@ -1,5 +1,7 @@
 #include "../header/map.h"
-#include <conio.h> // kbhit()
+#include <stdlib.h> // srand()
+#include <time.h>   // time()
+#include <conio.h>  // kbhit()
 
 #define FPS 3
 
@@ -12,6 +14,8 @@
 /*** Stealth Game ***/
 int main(int argc, char **argv)
 {
+    srand(time(0));
+
     // Map Initialization
     int width = 64, height = 18;
     MAP map = NewMap(MIN(width, MAX_W), MIN(height, MAX_H), FPS);
